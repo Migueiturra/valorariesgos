@@ -1,0 +1,203 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f8f9fc;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+
+/* Pantallas con transición */
+/* Pantallas con fade real */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100vh;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}
+
+
+/* Contenedor central */
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  margin: 0 auto 30px;
+  max-width: 700px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+h2, h3 {
+  color: #4F0B7B;
+  margin-bottom: 15px;
+}
+h4 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #4F0B7B;
+}
+
+p, label {
+  font-size: 15px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Botones */
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #4F0B7B;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  margin: 10px 5px 0 0;
+}
+.btn:hover { background: #3b065c; transform: translateY(-2px); }
+.btn-secondary { background: #E0119D; }
+.btn-secondary:hover { background: #b20d7d; }
+
+/* Selects */
+select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  margin-bottom: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+select:focus {
+  border-color: #3ABBD1;
+  box-shadow: 0 0 0 3px rgba(58,187,209,0.3);
+  outline: none;
+}
+
+/* Riesgo destacado */
+.riesgo-destacado {
+  background: #f3e8f9;
+  border-left: 6px solid #4F0B7B;
+  padding: 12px 16px;
+  margin: 15px 0;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #4F0B7B;
+}
+
+/* Tablas responsivas */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+#tablaResumen,
+#tablaColectivos {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* evita que se encoja demasiado */
+  font-size: 15px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+#tablaResumen thead,
+#tablaColectivos thead {
+  background: #4F0B7B;
+  color: white;
+}
+#tablaResumen th, #tablaResumen td,
+#tablaColectivos th, #tablaColectivos td {
+  padding: 14px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+#tablaResumen tr:nth-child(even),
+#tablaColectivos tr:nth-child(even) {
+  background: #fafafa;
+}
+#tablaResumen tr:hover,
+#tablaColectivos tr:hover {
+  background: #f3e8f9;
+}
+
+/* Niveles de riesgo con colores suaves */
+.nivel-bajo {
+  background: #b5e6b5; /* verde pastel */
+  color: #1a4d1a;
+  font-weight: bold;
+  border-radius: 6px;
+}
+.nivel-medio {
+  background: #fff3b0; /* amarillo pastel */
+  color: #664d00;
+  font-weight: bold;
+  border-radius: 6px;
+}
+.nivel-alto {
+  background: #f5b5b5; /* rojo pastel */
+  color: #660000;
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+/* Comparación personalizada */
+#comparacion {
+  margin-top: 25px;
+}
+.card-mini {
+  background: #fafafa;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+  border-left: 5px solid #4F0B7B;
+}
+.card-mini p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Pantalla de carga */
+.loading-container {
+  text-align: center;
+  padding: 50px;
+}
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #4F0B7B;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Fade inicial al cargar la primera pantalla */
+.fade-in {
+  animation: fadeIntro 0.8s ease forwards;
+}
+
+@keyframes fadeIntro {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

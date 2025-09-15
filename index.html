@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Percepción del Riesgo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Pantalla inicial -->
+  <div class="screen active fade-in" id="screen1">
+    <div class="card">
+      <h2>Bienvenido(a)</h2>
+      <p>
+        A continuación, analizarás distintas situaciones de riesgo.  
+        En cada una identificarás el riesgo principal y valorarás su nivel.  
+        Al final verás un resumen de tus respuestas y podrás compararlas con las de otros participantes de este curso.
+      </p>
+      <button class="btn" onclick="iniciar()">Comenzar</button>
+    </div>
+  </div>
+
+  <!-- Situaciones dinámicas -->
+  <div id="contenedor-situaciones"></div>
+
+  <!-- Pantalla de carga -->
+  <div class="screen" id="screenLoading">
+    <div class="card" style="text-align:center;">
+      <h2>Cargando resultados...</h2>
+      <p>Estamos procesando tus respuestas y comparándolas con el grupo.</p>
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <!-- Pantalla final combinada -->
+  <div class="screen" id="screenResumen">
+    <div class="card">
+      <!-- Sección individual -->
+      <h2>Resumen de tus respuestas</h2>
+      <p>
+        Aquí puedes ver el detalle de lo que respondiste en cada situación.
+      </p>
+      <div class="table-container">
+        <table id="tablaResumen">
+          <thead>
+            <tr>
+              <th>Situación</th>
+              <th>Riesgo identificado</th>
+              <th>Probabilidad (1–5)</th>
+              <th>Impacto (1–5)</th>
+              <th>Nivel de riesgo (PxI)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- Sección colectivos -->
+      <h2>Resultados de otros participantes del curso</h2>
+      <p>
+        Estos son ejemplos de cómo se verían los resultados agregados de los demás participantes.
+      </p>
+      <div class="table-container">
+        <table id="tablaColectivos">
+          <thead>
+            <tr>
+              <th>Situación</th>
+              <th style="text-align: left;">Riesgo más frecuente</th>
+              <th>%</th>
+              <th>Probabilidad promedio</th>
+              <th>Impacto promedio</th>
+              <th>Nivel más reportado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td style="text-align: left;">Golpeado por vehículo en movimiento</td>
+              <td>65%</td>
+              <td>4</td>
+              <td>5</td>
+              <td class="nivel-alto">Alto</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td style="text-align: left;">Lesiones por falta de EPP</td>
+              <td>48%</td>
+              <td>3</td>
+              <td>4</td>
+              <td class="nivel-medio">Medio</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td style="text-align: left;">Falla de equipos de izaje</td>
+              <td>55%</td>
+              <td>5</td>
+              <td>5</td>
+              <td class="nivel-alto">Alto</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td style="text-align: left;">Colisión por distracción</td>
+              <td>32%</td>
+              <td>2</td>
+              <td>3</td>
+              <td class="nivel-bajo">Bajo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Comparación personalizada -->
+      <div id="comparacion" style="margin-top: 30px;"></div>
+    </div>
+
+    <!-- Botón final -->
+    <div style="margin-top: 20px; text-align: center;">
+  <button class="btn btn-secondary" onclick="finalizar()">Finalizar</button>
+</div>
+
+  </div>
+
+  <script src="situaciones.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
