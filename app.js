@@ -121,7 +121,7 @@ function guardar(num, next) {
     setTimeout(() => {
       mostrarResumen();
       cambiarPantalla("screenResumen");
-    }, 1500);
+    }, 3000);
 
   } else {
     nextScreen(next, 1);
