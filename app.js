@@ -1,23 +1,33 @@
+// --- Inicializar Supabase ---
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const SUPABASE_URL = "https://bzjsjuehullgextzraqf.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6anNqdWVodWxsZ2V4dHpyYXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMjA0NjksImV4cCI6MjA3MzU5NjQ2OX0.g6KlSAYARCPANWpbEj3ms3N4r7wqzsWobqhqMM7Nru4";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// --- Variables globales ---
 let respuestas = {};
 let ultimaPantalla = null;
 
+// --- Cambiar de pantalla ---
 function cambiarPantalla(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function iniciar() {
+// --- Iniciar ---
+window.iniciar = function () {
   document.getElementById("screen1").classList.remove("active");
   generarPantallas();
-
-  // esperar un "tick" antes de activar la primera pantalla
   setTimeout(() => {
     document.getElementById("screen1-1").classList.add("active");
-  }, 50); // 50ms es suficiente para que se note el fade
-}
+  }, 50);
+};
 
-
-
+// --- Generar pantallas dinámicas ---
 function generarPantallas() {
   const contenedor = document.getElementById("contenedor-situaciones");
   contenedor.innerHTML = "";
@@ -25,7 +35,6 @@ function generarPantallas() {
   situaciones.forEach((sit, idx) => {
     const num = idx + 1;
 
-    // Pantalla selección
     const pantallaSel = `
       <div class="screen" id="screen${num}-1">
         <div class="card">
@@ -34,20 +43,19 @@ function generarPantallas() {
           <label>Selecciona el riesgo principal:</label>
           <select id="riesgo${num}">
             <option value="">-- Elige una opción --</option>
-            ${sit.opciones.map(op => `<option value="${op.valor}">${op.valor}</option>`).join("")}
+            ${sit.opciones.map((op) => `<option value="${op.valor}">${op.valor}</option>`).join("")}
           </select>
           ${num > 1 ? `<button class="btn btn-secondary" onclick="prevScreen(${num-1},2)">Volver</button>` : ""}
           <button class="btn" onclick="nextScreen(${num},2)">Continuar</button>
         </div>
       </div>`;
 
-    // Pantalla valoración
     const pantallaVal = `
       <div class="screen" id="screen${num}-2">
         <div class="card">
           <h3>Situación ${num} - Valoración</h3>
           <div id="riesgoSeleccionado${num}" class="riesgo-destacado"></div>
-          <label>Probabilidad (1-5): </label>
+          <label>Probabilidad (1-5):</label>
           <select id="prob${num}">
             <option value="">-- Selecciona --</option>
             <option value="1">1 - Raro</option>
@@ -56,7 +64,7 @@ function generarPantallas() {
             <option value="4">4 - Probable</option>
             <option value="5">5 - Casi seguro</option>
           </select>
-          <label>Impacto (1-5): </label>
+          <label>Impacto (1-5):</label>
           <select id="impact${num}">
             <option value="">-- Selecciona --</option>
             <option value="1">1 - Insignificante</option>
@@ -76,8 +84,8 @@ function generarPantallas() {
   });
 }
 
-function nextScreen(num, paso) {
-  // Validar que en el paso 1 se haya elegido un riesgo
+// --- Navegación ---
+window.nextScreen = function (num, paso) {
   if (paso === 2) {
     const riesgo = document.getElementById(`riesgo${num}`).value;
     if (!riesgo) {
@@ -87,18 +95,15 @@ function nextScreen(num, paso) {
     document.getElementById(`riesgoSeleccionado${num}`).innerText =
       "Riesgo seleccionado: " + riesgo;
   }
-
-  // Transición normal
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  document.getElementById(`screen${num}-${paso}`).classList.add("active");
-}
-
-
-function prevScreen(num, paso) {
   cambiarPantalla(`screen${num}-${paso}`);
-}
+};
 
-function guardar(num, next) {
+window.prevScreen = function (num, paso) {
+  cambiarPantalla(`screen${num}-${paso}`);
+};
+
+// --- Guardar respuestas ---
+window.guardar = async function (num, next) {
   let riesgo = document.getElementById("riesgo" + num).value;
   let prob = parseInt(document.getElementById("prob" + num).value);
   let impact = parseInt(document.getElementById("impact" + num).value);
@@ -111,25 +116,28 @@ function guardar(num, next) {
   let nivel = prob * impact;
   respuestas["situacion" + num] = { riesgo, probabilidad: prob, impacto: impact, nivel };
 
-  if (next === 'resumen') {
+  if (next === "resumen") {
     ultimaPantalla = `screen${num}-2`;
-
-    // Mostrar pantalla de carga
     cambiarPantalla("screenLoading");
 
-    // Simular tiempo de procesamiento y luego mostrar resumen
-    setTimeout(() => {
-      mostrarResumen();
-      cambiarPantalla("screenResumen");
-    }, 3000);
+    const { error } = await supabase.from("respuestas_participantes").insert([{ respuestas }]);
+    if (error) console.error("❌ Error guardando en Supabase:", error.message);
+    else console.log("✅ Respuestas guardadas en Supabase");
 
+    setTimeout(async () => {
+      await mostrarResumen();
+      cambiarPantalla("screenResumen");
+    }, 2000);
   } else {
     nextScreen(next, 1);
   }
-}
+};
 
-function mostrarResumen() {
-  // --- Sección individual ---
+// --- Mostrar resultados ---
+async function mostrarResumen() {
+  console.log("🔎 mostrarResumen() iniciado...");
+
+  // --- Tabla individual ---
   let tbody = document.querySelector("#tablaResumen tbody");
   tbody.innerHTML = "";
   let i = 1;
@@ -152,63 +160,79 @@ function mostrarResumen() {
     i++;
   }
 
-  // --- Sección colectivos (simulada) ---
-  const mayorias = {
-    1: { riesgo: "Golpeado por vehículo en movimiento", nivel: "Alto" },
-    2: { riesgo: "Lesiones por falta de EPP", nivel: "Medio" },
-    3: { riesgo: "Falla de equipos de izaje", nivel: "Alto" },
-    4: { riesgo: "Colisión por distracción", nivel: "Bajo" }
-  };
+  // --- Resultados colectivos ---
+  console.log("⏳ Llamando a resultados_colectivos...");
+  const { data, error } = await supabase.rpc("resultados_colectivos");
 
+  if (error) {
+    console.error("❌ Error RPC:", error.message);
+    return;
+  }
+  if (!data || data.length === 0) {
+    console.warn("⚠️ La RPC no devolvió datos");
+    return;
+  }
+
+  console.log("📊 Datos colectivos recibidos:", data);
+
+  // --- Tabla colectivos ---
+  let tbody2 = document.querySelector("#tablaColectivos tbody");
+  tbody2.innerHTML = "";
+  data.forEach((d) => {
+    let nivelClass =
+      d.nivel_mas_reportado === "Bajo" ? "nivel-bajo" :
+      d.nivel_mas_reportado === "Medio" ? "nivel-medio" :
+      "nivel-alto";
+
+    let row = `
+      <tr>
+        <td>${d.situacion_id}</td>
+        <td style="text-align: left;">${d.riesgo_mas_frecuente}</td>
+        <td>${d.porcentaje ? d.porcentaje.toFixed(1) : 0}%</td>
+        <td>${d.prob_promedio ? d.prob_promedio.toFixed(1) : "-"}</td>
+        <td>${d.impact_promedio ? d.impact_promedio.toFixed(1) : "-"}</td>
+        <td class="${nivelClass}">${d.nivel_mas_reportado || "-"}</td>
+      </tr>`;
+    tbody2.innerHTML += row;
+  });
+
+  // --- Comparación personalizada ---
   const cont = document.getElementById("comparacion");
   cont.innerHTML = `<h3>Comparación con tus respuestas</h3>`;
+  data.forEach((d) => {
+    const tu = respuestas["situacion" + d.situacion_id];
+    if (!tu) return;
 
-  for (let i = 1; i <= Object.keys(mayorias).length; i++) {
-    const tu = respuestas["situacion" + i];
-    const grupo = mayorias[i];
-    if (!tu) continue;
+    const riesgoTu = tu.riesgo.replace(/\(distractor\)/gi, "").trim().toLowerCase();
+    const riesgoGrupo = d.riesgo_mas_frecuente.replace(/\(distractor\)/gi, "").trim().toLowerCase();
 
     let texto = "";
-    if (tu.riesgo === grupo.riesgo) {
+    if (riesgoTu === riesgoGrupo) {
       texto = `Coincidiste con la mayoría en identificar "${tu.riesgo}".`;
     } else {
-      texto = `Tú elegiste "${tu.riesgo}", pero la mayoría eligió "${grupo.riesgo}".`;
+      texto = `Tú elegiste "${tu.riesgo}", pero la mayoría eligió "${d.riesgo_mas_frecuente}".`;
     }
 
-    if (tu.nivel <= 5) tu.nivelTxt = "Bajo";
-    else if (tu.nivel <= 15) tu.nivelTxt = "Medio";
-    else tu.nivelTxt = "Alto";
-
-    if (tu.nivelTxt === grupo.nivel) {
-      texto += ` También coincidiste en el nivel de riesgo (${grupo.nivel}).`;
+    let tuNivel = tu.nivel <= 5 ? "Bajo" : tu.nivel <= 15 ? "Medio" : "Alto";
+    if (tuNivel === d.nivel_mas_reportado) {
+      texto += ` También coincidiste en el nivel de riesgo (${d.nivel_mas_reportado}).`;
     } else {
-      texto += ` Pero tú lo valoraste como ${tu.nivelTxt} y la mayoría como ${grupo.nivel}.`;
+      texto += ` Pero tú lo valoraste como ${tuNivel} y la mayoría como ${d.nivel_mas_reportado}.`;
     }
 
     cont.innerHTML += `
       <div class="card-mini">
-        <h4>Situación ${i}</h4>
+        <h4>Situación ${d.situacion_id}</h4>
         <p>${texto}</p>
       </div>`;
-  }
+  });
 }
 
-function volverUltima() {
-  if (ultimaPantalla) {
-    cambiarPantalla(ultimaPantalla);
-  }
-}
-function finalizar() {
-  // Vaciar respuestas para reiniciar
+// --- Finalizar ---
+window.finalizar = function () {
   respuestas = {};
   ultimaPantalla = null;
-
-  // Ocultar todas las pantallas
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-
-  // Mostrar la pantalla inicial
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
   document.getElementById("screen1").classList.add("active");
-
-  // Asegurar que vuelva al tope de la página
   window.scrollTo({ top: 0, behavior: "smooth" });
-}
+};
