@@ -188,9 +188,10 @@ async function mostrarResumen() {
       <tr>
         <td>${d.situacion_id}</td>
         <td style="text-align: left;">${d.riesgo_mas_frecuente}</td>
-        <td>${d.porcentaje ? d.porcentaje.toFixed(1) : 0}%</td>
-        <td>${d.prob_promedio ? d.prob_promedio.toFixed(1) : "-"}</td>
-        <td>${d.impact_promedio ? d.impact_promedio.toFixed(1) : "-"}</td>
+       <td>${d.porcentaje ? Math.round(d.porcentaje) : 0}%</td>
+<td>${d.prob_promedio ? Math.round(d.prob_promedio) : "-"}</td>
+<td>${d.impact_promedio ? Math.round(d.impact_promedio) : "-"}</td>
+
         <td class="${nivelClass}">${d.nivel_mas_reportado || "-"}</td>
       </tr>`;
     tbody2.innerHTML += row;
