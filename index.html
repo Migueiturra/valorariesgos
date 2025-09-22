@@ -5,8 +5,7 @@
   <title>Percepción del Riesgo</title>
   <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 <body>
 
@@ -49,9 +48,9 @@
             <tr>
               <th>Situación</th>
               <th>Riesgo identificado</th>
-              <th>Probabilidad (1–5)</th>
-              <th>Impacto (1–5)</th>
-              <th>Nivel de riesgo (PxI)</th>
+              <th>Probabilidad</th>
+              <th>Consecuencia</th>
+              <th>VEP</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -61,9 +60,9 @@
 
     <div class="card">
       <!-- Sección colectivos -->
-      <h2>Resultados de otros participantes del curso</h2>
+<h2 id="tituloColectivos">Resultados de otros participantes del curso</h2>
       <p>
-        Estos son ejemplos de cómo se verían los resultados agregados de los demás participantes.
+        El número indica cuántos participantes respondieron hasta ahora. Los datos permiten observar patrones y coincidencias.
       </p>
       <div class="table-container">
         <table id="tablaColectivos">
@@ -72,13 +71,12 @@
               <th>Situación</th>
               <th style="text-align: left;">Riesgo más frecuente</th>
               <th>%</th>
-              <th>Probabilidad promedio</th>
-              <th>Impacto promedio</th>
-              <th>Nivel más reportado</th>
+              <th>Probabilidad más reportada</th>
+              <th>Consecuencia más reportada</th>
+              <th>VEP más reportado</th>
             </tr>
           </thead>
-          <tbody>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
 
@@ -88,15 +86,12 @@
 
     <!-- Botón final -->
     <div style="margin-top: 20px; text-align: center;">
-  <button class="btn btn-secondary" onclick="finalizar()">Finalizar</button>
-</div>
-
+      <button class="btn btn-secondary" onclick="finalizar()">Finalizar</button>
+    </div>
   </div>
 
   <script src="situaciones.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script type="module" src="app.js"></script>
-
- 
+  <script type="module" src="app.js"></script>
 </body>
 </html>

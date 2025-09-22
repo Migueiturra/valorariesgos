@@ -35,7 +35,7 @@ body {
   padding: 30px;
   border-radius: 16px;
   margin: 0 auto 30px;
-  max-width: 700px;
+  max-width: 900px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   box-sizing: border-box;
 }
@@ -125,25 +125,36 @@ select:focus {
   word-wrap: break-word;
 }
 
-/* Niveles de riesgo */
-.nivel-bajo {
-  background: #b5e6b5;
-  color: #1a4d1a;
-  font-weight: bold;
-  border-radius: 6px;
+.nivel-trivial {
+  background-color: #66bb6a; /* verde */
+  color: white;
 }
-.nivel-medio {
-  background: #fff3b0;
-  color: #664d00;
-  font-weight: bold;
-  border-radius: 6px;
+
+.nivel-tolerable {
+  background-color: #ffeb3b; /* amarillo claro */
+  color: black;
 }
-.nivel-alto {
-  background: #f5b5b5;
-  color: #660000;
-  font-weight: bold;
-  border-radius: 6px;
+
+.nivel-moderado {
+  background-color: #ffc107; /* amarillo fuerte */
+  color: black;
 }
+
+.nivel-importante {
+  background-color: #ff9800; /* naranja */
+  color: white;
+}
+
+.nivel-intolerable {
+  background-color: #f44336; /* rojo */
+  color: white;
+}
+
+.nivel-indefinido {
+  background-color: #9e9e9e; /* gris */
+  color: white;
+}
+
 
 /* Comparación personalizada */
 #comparacion {
@@ -256,3 +267,10 @@ select:focus {
   }
 }
 
+.texto-extra {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+  text-align: center;
+  font-style: italic;
+}

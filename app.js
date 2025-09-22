@@ -55,23 +55,19 @@ function generarPantallas() {
         <div class="card">
           <h3>Situación ${num} - Valoración</h3>
           <div id="riesgoSeleccionado${num}" class="riesgo-destacado"></div>
-          <label>Probabilidad (1-5):</label>
+          <label>Probabilidad:</label>
           <select id="prob${num}">
             <option value="">-- Selecciona --</option>
-            <option value="1">1 - Raro</option>
-            <option value="2">2 - Poco probable</option>
-            <option value="3">3 - Moderado</option>
-            <option value="4">4 - Probable</option>
-            <option value="5">5 - Casi seguro</option>
+            <option value="1">1 - Baja (ocurrirá rara vez)</option>
+            <option value="2">2 - Media (puede pasar en varias ocasiones)</option>
+            <option value="4">4 - Alta (ocurrirá siempre o casi siempre)</option>
           </select>
-          <label>Impacto (1-5):</label>
+          <label>Consecuencia:</label>
           <select id="impact${num}">
             <option value="">-- Selecciona --</option>
-            <option value="1">1 - Insignificante</option>
-            <option value="2">2 - Menor</option>
-            <option value="3">3 - Significativo</option>
-            <option value="4">4 - Mayor</option>
-            <option value="5">5 - Severo</option>
+            <option value="1">1 - Ligeramente dañino</option>
+            <option value="2">2 - Dañino</option>
+            <option value="4">4 - Extremadamente dañino</option>
           </select>
           <button class="btn btn-secondary" onclick="prevScreen(${num},1)">Volver</button>
           <button class="btn" onclick="guardar(${num},${num === situaciones.length ? "'resumen'" : num+1})">
@@ -133,6 +129,16 @@ window.guardar = async function (num, next) {
   }
 };
 
+// --- Función para mapear nivel ---
+function getNivelTexto(nivel) {
+  if (nivel === 1) return { txt: "Trivial", cls: "nivel-trivial" };
+  if (nivel === 2) return { txt: "Tolerable", cls: "nivel-tolerable" };
+  if (nivel === 4) return { txt: "Moderado", cls: "nivel-moderado" };
+  if (nivel === 8) return { txt: "Importante", cls: "nivel-importante" };
+  if (nivel === 16) return { txt: "Intolerable", cls: "nivel-intolerable" };
+  return { txt: "No definido", cls: "nivel-indefinido" };
+}
+
 // --- Mostrar resultados ---
 async function mostrarResumen() {
   console.log("🔎 mostrarResumen() iniciado...");
@@ -143,10 +149,7 @@ async function mostrarResumen() {
   let i = 1;
   for (let s in respuestas) {
     let r = respuestas[s];
-    let nivelTxt = "", nivelClass = "";
-    if (r.nivel <= 5) { nivelTxt = "Bajo"; nivelClass = "nivel-bajo"; }
-    else if (r.nivel <= 15) { nivelTxt = "Medio"; nivelClass = "nivel-medio"; }
-    else { nivelTxt = "Alto"; nivelClass = "nivel-alto"; }
+    let { txt, cls } = getNivelTexto(r.nivel);
 
     let row = `
       <tr>
@@ -154,80 +157,125 @@ async function mostrarResumen() {
         <td>${r.riesgo}</td>
         <td>${r.probabilidad}</td>
         <td>${r.impacto}</td>
-        <td class="${nivelClass}">${r.nivel} (${nivelTxt})</td>
+        <td class="${cls}">${r.nivel} (${txt})</td>
       </tr>`;
     tbody.innerHTML += row;
     i++;
   }
 
-  // --- Resultados colectivos ---
-  console.log("⏳ Llamando a resultados_colectivos...");
-  const { data, error } = await supabase.rpc("resultados_colectivos");
+ // --- Resultados colectivos ---
+console.log("⏳ Llamando a resultados_colectivos...");
+const { data, error } = await supabase.rpc("resultados_colectivos");
 
-  if (error) {
-    console.error("❌ Error RPC:", error.message);
-    return;
-  }
-  if (!data || data.length === 0) {
-    console.warn("⚠️ La RPC no devolvió datos");
-    return;
-  }
+if (error) {
+  console.error("❌ Error RPC:", error.message);
+  return;
+}
+if (!data || data.length === 0) {
+  console.warn("⚠️ La RPC no devolvió datos");
+  return;
+}
 
-  console.log("📊 Datos colectivos recibidos:", data);
+// --- Contar respuestas totales ---
+let totalRespuestas = 0;
+try {
+  const { count, error: countError } = await supabase
+    .from("respuestas_participantes")
+    .select("*", { count: "exact", head: true });
+
+  if (countError) {
+    console.error("❌ Error al contar respuestas:", countError.message);
+  } else {
+    totalRespuestas = count;
+  }
+} catch (e) {
+  console.error("❌ Error inesperado al contar:", e);
+}
+
+// 🔹 Actualizar título con (n=...)
+const tituloColectivos = document.querySelector("#tituloColectivos");
+if (tituloColectivos) {
+  tituloColectivos.innerHTML = `Resultados de otros participantes del curso (n=${totalRespuestas})`;
+}
 
   // --- Tabla colectivos ---
-  let tbody2 = document.querySelector("#tablaColectivos tbody");
-  tbody2.innerHTML = "";
-  data.forEach((d) => {
-    let nivelClass =
-      d.nivel_mas_reportado === "Bajo" ? "nivel-bajo" :
-      d.nivel_mas_reportado === "Medio" ? "nivel-medio" :
-      "nivel-alto";
+let tbody2 = document.querySelector("#tablaColectivos tbody");
+tbody2.innerHTML = "";
+data.forEach((d) => {
+  let { txt, cls } = getNivelTexto(d.vep_moda);
 
-    let row = `
-      <tr>
-        <td>${d.situacion_id}</td>
-        <td style="text-align: left;">${d.riesgo_mas_frecuente}</td>
-       <td>${d.porcentaje ? Math.round(d.porcentaje) : 0}%</td>
-<td>${d.prob_promedio ? Math.round(d.prob_promedio) : "-"}</td>
-<td>${d.impact_promedio ? Math.round(d.impact_promedio) : "-"}</td>
+  let row = `
+    <tr>
+      <td>${d.situacion_id}</td>
+      <td style="text-align: left;">${d.riesgo_mas_frecuente}</td>
+      <td>${d.porcentaje ? Math.round(d.porcentaje) : 0}%</td>
+      <td>${d.prob_moda ?? '-'}</td>
+      <td>${d.impact_moda ?? '-'}</td>
+      <td class="${cls}">${d.vep_moda ?? '-'} (${txt})</td>
+    </tr>`;
+  tbody2.innerHTML += row;
+});
 
-        <td class="${nivelClass}">${d.nivel_mas_reportado || "-"}</td>
-      </tr>`;
-    tbody2.innerHTML += row;
-  });
+// 🔹 Texto fijo al final de la tabla
+tbody2.innerHTML += `
+  <tr>
+    <td colspan="6" style="text-align:center; padding-top:15px;">
+      <br>
+      <p style="font-style:italic; color:#555;">
+        Los valores mostrados en esta tabla corresponden a las modas, es decir, las respuestas más repetidas por los participantes en cada dimensión (probabilidad, consecuencia y VEP). Por esta razón, el VEP más reportado no siempre coincide con el cálculo directo de multiplicar la probabilidad y la consecuencia, sino que refleja la tendencia grupal.
+      </p>
+    </td>
+  </tr>
+`;
+
 
   // --- Comparación personalizada ---
-  const cont = document.getElementById("comparacion");
-  cont.innerHTML = `<h3>Comparación con tus respuestas</h3>`;
-  data.forEach((d) => {
-    const tu = respuestas["situacion" + d.situacion_id];
-    if (!tu) return;
+const cont = document.getElementById("comparacion");
+let comparadorHTML = `<h3>Comparación con tus respuestas</h3>`;
 
-    const riesgoTu = tu.riesgo.replace(/\(distractor\)/gi, "").trim().toLowerCase();
-    const riesgoGrupo = d.riesgo_mas_frecuente.replace(/\(distractor\)/gi, "").trim().toLowerCase();
+data.forEach((d) => {
+  const tu = respuestas["situacion" + d.situacion_id];
+  if (!tu) return;
 
-    let texto = "";
-    if (riesgoTu === riesgoGrupo) {
-      texto = `Coincidiste con la mayoría en identificar "${tu.riesgo}".`;
-    } else {
-      texto = `Tú elegiste "${tu.riesgo}", pero la mayoría eligió "${d.riesgo_mas_frecuente}".`;
-    }
+  const riesgoTu = tu.riesgo.replace(/\(distractor\)/gi, "").trim().toLowerCase();
+  const riesgoGrupo = d.riesgo_mas_frecuente.replace(/\(distractor\)/gi, "").trim().toLowerCase();
 
-    let tuNivel = tu.nivel <= 5 ? "Bajo" : tu.nivel <= 15 ? "Medio" : "Alto";
-    if (tuNivel === d.nivel_mas_reportado) {
-      texto += ` También coincidiste en el nivel de riesgo (${d.nivel_mas_reportado}).`;
-    } else {
-      texto += ` Pero tú lo valoraste como ${tuNivel} y la mayoría como ${d.nivel_mas_reportado}.`;
-    }
+  let texto = "";
+  if (riesgoTu === riesgoGrupo) {
+    texto = `Coincidiste con la mayoría en identificar "${tu.riesgo}".`;
+  } else {
+    texto = `Tú elegiste "${tu.riesgo}", pero la mayoría eligió "${d.riesgo_mas_frecuente}".`;
+  }
 
-    cont.innerHTML += `
-      <div class="card-mini">
-        <h4>Situación ${d.situacion_id}</h4>
-        <p>${texto}</p>
-      </div>`;
-  });
+  let { txt: tuNivel } = getNivelTexto(tu.nivel);
+  let { txt: grupoNivel } = getNivelTexto(d.vep_moda);
+
+  if (tuNivel === grupoNivel) {
+    texto += ` También coincidiste en el nivel de riesgo (${grupoNivel}).`;
+  } else {
+    texto += ` Pero tú lo valoraste como ${tuNivel} y la mayoría como ${grupoNivel}.`;
+  }
+
+  comparadorHTML += `
+    <div class="card-mini">
+      <h4>Situación ${d.situacion_id}</h4>
+      <p>${texto}</p>
+    </div>`;
+});
+
+// 🔹 ahora sí, al final agregamos el texto fijo
+comparadorHTML += `
+  <br>
+  <p style="font-style:italic; color:#555; text-align:center;">
+    La comparación entre tu percepción y la de los demás participantes es una oportunidad para reflexionar sobre cómo evaluamos el riesgo de manera individual y cómo influyen factores como la experiencia o el contexto laboral en esa percepción.
+  </p>
+`;
+
+
+cont.innerHTML = comparadorHTML;
+
 }
+
 
 // --- Finalizar ---
 window.finalizar = function () {
